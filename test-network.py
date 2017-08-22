@@ -44,15 +44,13 @@ class Preprocessor:
         subarray = ds[self.input_list]
         ftype = [(n, float) for n in self.input_list]
         floated = subarray.astype(ftype).view(float).reshape(ds.shape + (-1,))
+        nans = np.isnan(floated)
+        defaults = np.repeat(self.default[None,:], ds.shape[0], axis=0)
+        floated[nans] = defaults[nans]
         normed_values = (floated + self.offset) * self.scale
         return normed_values
 
 
-def flatten(ds):
-    """
-    """
-    ftype = [(n, float) for n in ds.dtype.names]
-    return ds.astype(ftype).view(float).reshape(ds.shape + (-1,))
 
 def run():
     args = _get_args()
@@ -70,14 +68,6 @@ def run():
     n_inputs = model.layers[0].input_shape[1]
     assert n_inputs == len(inputs['inputs'])
 
-    pos_dict = {}
-    scale = np.zeros((n_inputs,))
-    offset = np.zeros((n_inputs,))
-    for nnn, entry in enumerate(inputs['inputs']):
-        pos_dict[entry['name']] = nnn
-        scale[nnn] = entry['scale']
-        offset[nnn] = entry['offset']
-
     preprocessor = Preprocessor(inputs['inputs'])
 
     for pat in generate_test_pattern(args.data_file, input_dict=inputs):
@@ -89,7 +79,7 @@ def run():
         # outputs = list(model.predict(pat))[0]
         # print(outputs)
 
-def generate_test_pattern(input_file, input_dict, chunk_size=2):
+def generate_test_pattern(input_file, input_dict, chunk_size=1):
 
     with File(input_file, 'r') as h5file:
         for start in range(0, h5file['jets'].shape[0], chunk_size):
