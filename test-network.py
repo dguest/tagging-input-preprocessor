@@ -41,7 +41,6 @@ class Preprocessor:
             self.default[nnn] = entry['default']
 
     def get_array(self, ds):
-        drop = list(set(ds.dtype.names) - set(self.input_list))
         subarray = ds[self.input_list]
         ftype = [(n, float) for n in self.input_list]
         floated = subarray.astype(ftype).view(float).reshape(ds.shape + (-1,))
