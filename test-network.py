@@ -9,7 +9,7 @@ _help_hdf5_file = "NN weights file from Keras"
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from numpy import linspace
-from numpy.lib.recfunctions import merge_arrays
+from numpy.lib.recfunctions import merge_arrays, rec_drop_fields
 import numpy as np
 import json
 from math import isnan
@@ -33,15 +33,27 @@ class Preprocessor:
         self.offset = np.zeros((n_inputs,))
         self.default = np.zeros((n_inputs,))
         self.pos_dict = {}
+        self.input_list = [i['name'] for i in inputs]
         for nnn, entry in enumerate(inputs):
-            pos_dict[entry['name']] = nnn
+            self.pos_dict[entry['name']] = nnn
             self.scale[nnn] = entry['scale']
             self.offset[nnn] = entry['offset']
             self.default[nnn] = entry['default']
 
-    def get_array(self, struct_array):
-        normed_values = (raw_values + offset) * scale
+    def get_array(self, ds):
+        drop = list(set(ds.dtype.names) - set(self.input_list))
+        subarray = ds[self.input_list]
+        ftype = [(n, float) for n in self.input_list]
+        floated = subarray.astype(ftype).view(float).reshape(ds.shape + (-1,))
+        normed_values = (floated + self.offset) * self.scale
+        return normed_values
 
+
+def flatten(ds):
+    """
+    """
+    ftype = [(n, float) for n in ds.dtype.names]
+    return ds.astype(ftype).view(float).reshape(ds.shape + (-1,))
 
 def run():
     args = _get_args()
@@ -67,10 +79,11 @@ def run():
         scale[nnn] = entry['scale']
         offset[nnn] = entry['offset']
 
+    preprocessor = Preprocessor(inputs['inputs'])
 
     for pat in generate_test_pattern(args.data_file, input_dict=inputs):
 
-        print(pat.dtype.names)
+        print(preprocessor.get_array(pat))
         return
         # normed_values = (raw_values + offset) * scale
 
@@ -82,14 +95,18 @@ def generate_test_pattern(input_file, input_dict, chunk_size=2):
     with File(input_file, 'r') as h5file:
         for start in range(0, h5file['jets'].shape[0], chunk_size):
             sl = slice(start, start + chunk_size)
+
             subjets = []
             for sjn in [1,2]:
                 subjet = np.asarray(h5file[f'subjet{sjn}'][sl])
                 newnames = [f'subjet_{sjn}_{nm}' for nm in subjet.dtype.names]
                 subjet.dtype.names = newnames
                 subjets.append(subjet)
+            fatjet = h5file['jets'][sl]
+            newnames = [f'jet_{nm}' for nm in fatjet.dtype.names]
+            fatjet.dtype.names = newnames
 
-            yield merge_arrays((h5file['jets'][sl],*subjets), flatten=True)
+            yield merge_arrays((fatjet,*subjets), flatten=True)
 
 
 
