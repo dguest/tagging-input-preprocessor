@@ -1,0 +1,13 @@
+# ignore common data file types
+*.yml
+*.yaml
+*.json
+*.txt
+*.h5
+*.tgz
+*.gz
+
+# except for the data
+!*-data/*
+
+
