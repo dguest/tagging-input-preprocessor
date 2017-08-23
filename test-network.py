@@ -9,11 +9,12 @@ _help_hdf5_file = "NN weights file from Keras"
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from numpy import linspace
-from numpy.lib.recfunctions import merge_arrays, rec_drop_fields
+from numpy.lib.recfunctions import merge_arrays
 import numpy as np
 import json
 from math import isnan
 from h5py import File
+from collections import Counter
 
 def _get_args():
     parser = ArgumentParser(
@@ -44,7 +45,7 @@ class Preprocessor:
         subarray = ds[self.input_list]
         ftype = [(n, float) for n in self.input_list]
         floated = subarray.astype(ftype).view(float).reshape(ds.shape + (-1,))
-        nans = np.isnan(floated)
+        nans = np.isnan(floated) | np.isinf(floated)
         defaults = np.repeat(self.default[None,:], ds.shape[0], axis=0)
         floated[nans] = defaults[nans]
         normed_values = (floated + self.offset) * self.scale
@@ -70,16 +71,26 @@ def run():
 
     preprocessor = Preprocessor(inputs['inputs'])
 
-    for pat in generate_test_pattern(args.data_file, input_dict=inputs):
+    n_diff = Counter()
+    for pattern in generate_test_pattern(args.data_file, input_dict=inputs):
 
-        print(preprocessor.get_array(pat))
-        return
-        # normed_values = (raw_values + offset) * scale
+        array = preprocessor.get_array(pattern)
+        outputs = model.predict(array)[:,0]
+        discrim = pattern['jet_discriminant']
+        not_close = ~np.isclose(outputs, discrim)
+        if np.any(not_close):
+            keras = outputs[not_close]
+            lwtnn = discrim[not_close]
+            diff = lwtnn - keras
+            for ker, lw, dif in zip(keras, lwtnn, diff):
+                print(f'keras: {ker:.3}, lwtnn: {lw:.3}, diff: {dif:.3}')
+            n_diff['diffs'] += diff.size
+        n_diff['total'] += pattern.size
 
-        # outputs = list(model.predict(pat))[0]
-        # print(outputs)
+    print('total with difference: {} of {}, ({:.3%})'.format(
+        n_diff['diffs'], n_diff['total'], n_diff['diffs']/n_diff['total']))
 
-def generate_test_pattern(input_file, input_dict, chunk_size=1):
+def generate_test_pattern(input_file, input_dict, chunk_size=200):
 
     with File(input_file, 'r') as h5file:
         for start in range(0, h5file['jets'].shape[0], chunk_size):
