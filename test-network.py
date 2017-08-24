@@ -28,27 +28,44 @@ def _get_args():
 
 
 class Preprocessor:
+    """
+    This class handles all the conversion between the original HDF5
+    file and the numpy arrays we feed the network.
+    """
     def __init__(self, inputs):
         n_inputs = len(inputs)
         self.scale = np.zeros((n_inputs,))
         self.offset = np.zeros((n_inputs,))
         self.default = np.zeros((n_inputs,))
-        self.pos_dict = {}
         self.input_list = [i['name'] for i in inputs]
         for nnn, entry in enumerate(inputs):
-            self.pos_dict[entry['name']] = nnn
             self.scale[nnn] = entry['scale']
             self.offset[nnn] = entry['offset']
             self.default[nnn] = entry['default']
 
+
     def get_array(self, ds):
-        subarray = ds[self.input_list]
+        """Returns a flat numpy array given a structured array"""
+
+        # Get the variables we're actually going to use
+        sub = ds[self.input_list]
+
+        # we need to convert everything into a float
+        # first create the new datatype
         ftype = [(n, float) for n in self.input_list]
-        floated = subarray.astype(ftype).view(float).reshape(ds.shape + (-1,))
+        # this magic replaces an array with named fields with an array
+        # that has one extra dimension
+        floated = sub.astype(ftype, casting='safe').view((float, len(ftype)))
+
+        # replace the inf and nan fields with defaults
         nans = np.isnan(floated) | np.isinf(floated)
-        defaults = np.repeat(self.default[None,:], ds.shape[0], axis=0)
+        # NOTE: this part may need some rewriting to work with 2d arrays!
+        defaults = np.repeat(self.default[None,...], ds.shape[0], axis=0)
         floated[nans] = defaults[nans]
+
+        # shift and normalize data
         normed_values = (floated + self.offset) * self.scale
+
         return normed_values
 
 
@@ -90,18 +107,32 @@ def run():
     print('total with difference: {} of {}, ({:.3%})'.format(
         n_diff['diffs'], n_diff['total'], n_diff['diffs']/n_diff['total']))
 
-def generate_test_pattern(input_file, input_dict, chunk_size=200):
 
+
+def generate_test_pattern(input_file, input_dict, chunk_size=200):
+    """
+    This spits out structured arrays, it may have to be changed to flatten
+    the 2d arrays of tracks and clusters
+    """
     with File(input_file, 'r') as h5file:
         for start in range(0, h5file['jets'].shape[0], chunk_size):
             sl = slice(start, start + chunk_size)
 
+            # build a list of subjets
             subjets = []
             for sjn in [1,2]:
+
                 subjet = np.asarray(h5file[f'subjet{sjn}'][sl])
+
+                # we rename the variables in the subjet (since we're
+                # flattening them and the names will clash with the
+                # other jets)
                 newnames = [f'subjet_{sjn}_{nm}' for nm in subjet.dtype.names]
                 subjet.dtype.names = newnames
+
                 subjets.append(subjet)
+
+            # grab the fatjet and rename the fields
             fatjet = h5file['jets'][sl]
             newnames = [f'jet_{nm}' for nm in fatjet.dtype.names]
             fatjet.dtype.names = newnames
