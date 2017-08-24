@@ -7,6 +7,8 @@ _help_arch_file = "NN archetecture file from Keras"
 _help_vars_file = "Variable description file"
 _help_hdf5_file = "NN weights file from Keras"
 
+# NOTE: the code execution starts in `run()` below, skip down there!
+
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from numpy import linspace
 from numpy.lib.recfunctions import merge_arrays
@@ -71,29 +73,45 @@ class Preprocessor:
 
 
 def run():
+    """main function call for this script"""
+    # read in the command line options
     args = _get_args()
 
     # keras loads slow, do the loading here
     from keras.models import model_from_json
 
+    # load the keras model
     with open(args.archetecture_file) as arch:
         model = model_from_json(''.join(arch.readlines()))
     model.load_weights(args.hdf5_file)
 
+    # load in the names of the variables that we're feeding the network
     with open(args.variables_file) as variables_file:
         inputs = json.loads(''.join(variables_file.readlines()))
 
+    # quick sanity check to make sure the model matches the inputs file
     n_inputs = model.layers[0].input_shape[1]
     assert n_inputs == len(inputs['inputs'])
 
+    # the preprocessor handles all the nan replacement, scaling,
+    # shifts, etc
     preprocessor = Preprocessor(inputs['inputs'])
 
+    # This is the main loop over jets. We keep track of how often the
+    # values we compute from Keras disagree with the ones stored in
+    # the input file.
     n_diff = Counter()
     for pattern in generate_test_pattern(args.data_file, input_dict=inputs):
 
+        # get inputs for keras and feed them to the model
         array = preprocessor.get_array(pattern)
         outputs = model.predict(array)[:,0]
+
+        # look up the pre-computed values
         discrim = pattern['jet_discriminant']
+
+        # print some information if there's any disagreement. Also
+        # keep track of how often it happens
         not_close = ~np.isclose(outputs, discrim)
         if np.any(not_close):
             keras = outputs[not_close]
@@ -104,6 +122,7 @@ def run():
             n_diff['diffs'] += diff.size
         n_diff['total'] += pattern.size
 
+    # Print summary information
     print('total with difference: {} of {}, ({:.3%})'.format(
         n_diff['diffs'], n_diff['total'], n_diff['diffs']/n_diff['total']))
 

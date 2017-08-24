@@ -13,4 +13,14 @@ To run the code
 
 If anything goes wrong contact me!
 
+What are all these files
+------------------------
+
+The main logic is inside `./test-network.py`, look there for more
+explanation.
+
+Briefly, this reads in a trained Keras network along with a file where
+the network outputs have already been added. It then compares the two
+and prints out any mismatches.
+
 [1]: https://git-lfs.github.com/

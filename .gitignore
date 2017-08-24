@@ -7,6 +7,9 @@
 *.tgz
 *.gz
 
+*.png
+*.pdf
+
 # except for the data
 !*-data/*
 
