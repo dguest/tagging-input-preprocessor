@@ -16,7 +16,7 @@ If anything goes wrong contact me!
 What are all these files
 ------------------------
 
-The main logic is inside `./test-network.py`, look there for more
+The main logic is inside `./test_network.py`, look there for more
 explanation.
 
 Briefly, this reads in a trained Keras network along with a file where
