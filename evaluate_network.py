@@ -46,31 +46,32 @@ class Preprocessor:
             self.default[nnn] = entry['default']
 
 
-    def get_array(self, ds):
+    def get_array(self, data):
+        flat_data = convert_2D_ndarray_to_numpy(data)
+        flat_data = replace_nans(flat_data)
+        return scale_and_center(flat_data)
+
+    def replace_nans(self, data):
+        nan_positions = np.isnan(data) | np.isinf(data)
+        default_values = np.repeat(self.default[None,...], data.shape[0], axis=0)
+        data[nan_positions] = default_values[nan_positions]
+
+    def scale_and_center(self, data):
+        return (data + self.offset) * self.scale
+
+    def convert_2D_ndarray_to_numpy(self, data):
         """Returns a flat numpy array given a structured array"""
-
         # Get the variables we're actually going to use
-        sub = ds[self.input_list]
-
+        sub = data[self.input_list]
+ 
         # we need to convert everything into a float
         # first create the new datatype
         ftype = [(n, float) for n in self.input_list]
+
         # this magic replaces an array with named fields with an array
         # that has one extra dimension
         floated = sub.astype(ftype, casting='safe').view((float, len(ftype)))
-
-        # replace the inf and nan fields with defaults
-        nans = np.isnan(floated) | np.isinf(floated)
-        # NOTE: this part may need some rewriting to work with 2d arrays!
-        defaults = np.repeat(self.default[None,...], ds.shape[0], axis=0)
-        floated[nans] = defaults[nans]
-
-        # shift and normalize data
-        normed_values = (floated + self.offset) * self.scale
-
-        return normed_values
-
-
+        return floated
 
 def run():
     """main function call for this script"""
