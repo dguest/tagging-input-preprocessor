@@ -73,18 +73,22 @@ class Preprocessor:
         floated = sub.astype(ftype, casting='safe').view((float, len(ftype)))
         return floated
 
+def load_keras_model(arch_file, weights_file):
+    """ loads and initializes a keras model"""
+    from keras.models import model_from_json
+    with open(arch_file) as arch:
+        model = model_from_json(''.join(arch.readlines()))
+    model.load_weights(weights_file)
+    return model
+    
+
 def run():
     """main function call for this script"""
     # read in the command line options
     args = _get_args()
 
-    # keras loads slow, do the loading here
-    from keras.models import model_from_json
-
     # load the keras model
-    with open(args.archetecture_file) as arch:
-        model = model_from_json(''.join(arch.readlines()))
-    model.load_weights(args.hdf5_file)
+    model = load_keras_model(args.archetecture_file, args.hdf5_file)
 
     # load in the names of the variables that we're feeding the network
     with open(args.variables_file) as variables_file:
