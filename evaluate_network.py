@@ -81,7 +81,11 @@ def load_keras_model(arch_file, weights_file):
         model = model_from_json(''.join(arch.readlines()))
     model.load_weights(weights_file)
     return model
-    
+
+def load_variable_names(variables_file_name):
+    with open(variables_file_name) as variables_file:
+        inputs = json.loads(''.join(variables_file.readlines()))
+    return inputs
 
 def run():
     """main function call for this script"""
@@ -92,8 +96,7 @@ def run():
     model = load_keras_model(args.architecture_file, args.hdf5_file)
 
     # load in the names of the variables that we're feeding the network
-    with open(args.variables_file) as variables_file:
-        inputs = json.loads(''.join(variables_file.readlines()))
+    inputs = load_variable_names(args.variables_file)
 
     # quick sanity check to make sure the model matches the inputs file
     num_inputs = model.layers[0].input_shape[1]
