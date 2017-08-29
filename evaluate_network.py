@@ -102,8 +102,7 @@ def run():
     num_inputs = model.layers[0].input_shape[1]
     assert num_inputs == len(variable_names['inputs'])
 
-    # the preprocessor handles all the nan replacement, scaling,
-    # shifts, etc
+    # the preprocessor handles all the nan replacement, scaling, shifts, etc
     preprocessor = Preprocessor(variable_names['inputs'])
 
     # This is the main loop over jets. We keep track of how often the
@@ -135,18 +134,14 @@ def run():
     print('total with difference: {} of {}, ({:.3%})'.format(
         n_diff['diffs'], n_diff['total'], n_diff['diffs']/n_diff['total']))
 
-def load_julian_processed_hdf5_data(feature):
-    path = "./input_data/"
-    file_name = "small_test_categorized_data_signal.h5"
-    hf = h5py.File(path + file_name)
-    data = hf.get("/%s/%s" % (feature, 'test'))
+def load_julian_processed_hdf5_data(file_name="./input_data/small_test_categorized_data_signal.h5", feature):
+    with h5py.File(file_name) as hf:
+        data = hf.get("/%s/%s" % (feature, 'test'))
     return data
 
-def load_raw_hdf5_data(feature, num_samples=None):
-    path = "./input_data/"
-    file_name = 
-    hf = h5py.File(path + file_name)
-    data = hf.get(feature)
+def load_raw_hdf5_data(file_name="./input_data/small_test_data_signal.h5", feature, num_samples=None):
+    with h5py.File(file_name) as hf:
+        data = hf.get(feature)
     return data
 
 def generate_test_pattern(input_file, input_dict, chunk_size=200):
