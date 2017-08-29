@@ -103,7 +103,7 @@ def run_julian():
     data = load_julian_processed_hdf5_data(feature='hl_tracks')
     array = preprocessor.preprocess_data(data)
     outputs = model.predict(array)[:,0]  # TODO should it be [:, 1] instead?
-    return outputs
+    print outputs
 
 
 def run():
@@ -154,12 +154,12 @@ def run():
         n_diff['diffs'], n_diff['total'], n_diff['diffs']/n_diff['total']))
 
 def load_julian_processed_hdf5_data(feature, file_name="./input_data/small_test_categorized_data_signal.h5"):
-    with h5py.File(file_name) as hf:
+    with h5py.File(file_name, 'r') as hf:
         data = hf.get("/%s/%s" % (feature, 'test'))
     return data
 
 def load_raw_hdf5_data(feature, file_name="./input_data/small_test_data_signal.h5", num_samples=None):
-    with h5py.File(file_name) as hf:
+    with h5py.File(file_name, 'r') as hf:
         data = hf.get(feature)
     return data
 
@@ -196,4 +196,5 @@ def generate_test_pattern(input_file, input_dict, chunk_size=200):
 
 
 if __name__ == '__main__':
-    run()
+    run_julian()
+    #run()
