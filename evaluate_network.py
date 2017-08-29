@@ -3,7 +3,7 @@
 """
 Tests for networks
 """
-_help_arch_file = "NN archetecture file from Keras"
+_help_arch_file = "NN architecture file from Keras"
 _help_vars_file = "Variable description file"
 _help_hdf5_file = "NN weights file from Keras"
 
@@ -22,7 +22,7 @@ def _get_args():
     parser = ArgumentParser(
         description=__doc__,
         formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('archetecture_file', help=_help_arch_file)
+    parser.add_argument('architecture_file', help=_help_arch_file)
     parser.add_argument('variables_file', help=_help_vars_file)
     parser.add_argument('hdf5_file', help=_help_hdf5_file)
     parser.add_argument('data_file', help='run on this file')
@@ -89,7 +89,7 @@ def run():
     args = _get_args()
 
     # load the keras model
-    model = load_keras_model(args.archetecture_file, args.hdf5_file)
+    model = load_keras_model(args.architecture_file, args.hdf5_file)
 
     # load in the names of the variables that we're feeding the network
     with open(args.variables_file) as variables_file:
