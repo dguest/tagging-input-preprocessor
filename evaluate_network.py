@@ -52,6 +52,11 @@ class Preprocessor:
         flat_data = replace_nans(flat_data)
         return flat_data
 
+    def preprocess_data(self, data):
+        flat_data = scale_and_center(data)
+        flat_data = replace_nans(flat_data)
+        return flat_data
+
     def replace_nans(self, data):
         nan_positions = np.isnan(data) | np.isinf(data)
         default_values = np.repeat(self.default[None,...], data.shape[0], axis=0)
@@ -86,6 +91,20 @@ def load_variable_names(variables_file_name):
     with open(variables_file_name) as variables_file:
         inputs = json.loads(''.join(variables_file.readlines()))
     return inputs
+
+def run_julian():
+    args = _get_args()
+    model = load_keras_model(args.architecture_file, args.hdf5_file)
+    variable_names = load_variable_names(args.variables_file)
+    num_inputs = model.layers[0].input_shape[1]
+    assert num_inputs == len(variable_names['inputs'])
+    preprocessor = Preprocessor(variable_names['inputs'])
+
+    data = load_julian_processed_hdf5_data(feature='hl_tracks')
+    array = preprocessor.preprocess_data(data)
+    outputs = model.predict(array)[:,0]  # TODO should it be [:, 1] instead?
+    return outputs
+
 
 def run():
     """main function call for this script"""
@@ -134,12 +153,12 @@ def run():
     print('total with difference: {} of {}, ({:.3%})'.format(
         n_diff['diffs'], n_diff['total'], n_diff['diffs']/n_diff['total']))
 
-def load_julian_processed_hdf5_data(file_name="./input_data/small_test_categorized_data_signal.h5", feature):
+def load_julian_processed_hdf5_data(feature, file_name="./input_data/small_test_categorized_data_signal.h5"):
     with h5py.File(file_name) as hf:
         data = hf.get("/%s/%s" % (feature, 'test'))
     return data
 
-def load_raw_hdf5_data(file_name="./input_data/small_test_data_signal.h5", feature, num_samples=None):
+def load_raw_hdf5_data(feature, file_name="./input_data/small_test_data_signal.h5", num_samples=None):
     with h5py.File(file_name) as hf:
         data = hf.get(feature)
     return data
