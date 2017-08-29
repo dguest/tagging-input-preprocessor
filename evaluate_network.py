@@ -96,21 +96,21 @@ def run():
     model = load_keras_model(args.architecture_file, args.hdf5_file)
 
     # load in the names of the variables that we're feeding the network
-    inputs = load_variable_names(args.variables_file)
+    variable_names = load_variable_names(args.variables_file)
 
-    # quick sanity check to make sure the model matches the inputs file
+    # quick sanity check to make sure the model matches the variable names file
     num_inputs = model.layers[0].input_shape[1]
-    assert num_inputs == len(inputs['inputs'])
+    assert num_inputs == len(variable_names['inputs'])
 
     # the preprocessor handles all the nan replacement, scaling,
     # shifts, etc
-    preprocessor = Preprocessor(inputs['inputs'])
+    preprocessor = Preprocessor(variable_names['inputs'])
 
     # This is the main loop over jets. We keep track of how often the
     # values we compute from Keras disagree with the ones stored in
     # the input file.
     n_diff = Counter()
-    for pattern in generate_test_pattern(args.data_file, input_dict=inputs):
+    for pattern in generate_test_pattern(args.data_file, input_dict=variable_names):
 
         # get inputs for keras and feed them to the model
         array = preprocessor.get_array(pattern)
