@@ -48,8 +48,9 @@ class Preprocessor:
 
     def get_array(self, data):
         flat_data = convert_2D_ndarray_to_numpy(data)
+        flat_data = scale_and_center(flat_data)
         flat_data = replace_nans(flat_data)
-        return scale_and_center(flat_data)
+        return flat_data
 
     def replace_nans(self, data):
         nan_positions = np.isnan(data) | np.isinf(data)
