@@ -100,10 +100,10 @@ def run_julian():
     assert num_inputs == len(variable_names['inputs'])
     preprocessor = Preprocessor(variable_names['inputs'])
 
-    data = load_julian_processed_hdf5_data(feature='hl_tracks')
+    data = load_julian_processed_hdf5_data(file_name= args.data_file, feature='hl_tracks')
     array = preprocessor.preprocess_data(data)
     outputs = model.predict(array)[:,0]  # TODO should it be [:, 1] instead?
-    print outputs
+    print(outputs)
 
 
 def run():
