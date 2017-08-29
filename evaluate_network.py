@@ -131,7 +131,19 @@ def run():
     print('total with difference: {} of {}, ({:.3%})'.format(
         n_diff['diffs'], n_diff['total'], n_diff['diffs']/n_diff['total']))
 
+def load_julian_processed_hdf5_data(feature):
+    path = "./input_data/"
+    file_name = "small_test_categorized_data_signal.h5"
+    hf = h5py.File(path + file_name)
+    data = hf.get("/%s/%s" % (feature, 'test'))
+    return data
 
+def load_raw_hdf5_data(feature, num_samples=None):
+    path = "./input_data/"
+    file_name = 
+    hf = h5py.File(path + file_name)
+    data = hf.get(feature)
+    return data
 
 def generate_test_pattern(input_file, input_dict, chunk_size=200):
     """
