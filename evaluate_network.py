@@ -35,10 +35,10 @@ class Preprocessor:
     file and the numpy arrays we feed the network.
     """
     def __init__(self, inputs):
-        n_inputs = len(inputs)
-        self.scale = np.zeros((n_inputs,))
-        self.offset = np.zeros((n_inputs,))
-        self.default = np.zeros((n_inputs,))
+        num_inputs = len(inputs)
+        self.scale = np.zeros((num_inputs,))
+        self.offset = np.zeros((num_inputs,))
+        self.default = np.zeros((num_inputs,))
         self.input_list = [i['name'] for i in inputs]
         for nnn, entry in enumerate(inputs):
             self.scale[nnn] = entry['scale']
@@ -96,8 +96,8 @@ def run():
         inputs = json.loads(''.join(variables_file.readlines()))
 
     # quick sanity check to make sure the model matches the inputs file
-    n_inputs = model.layers[0].input_shape[1]
-    assert n_inputs == len(inputs['inputs'])
+    num_inputs = model.layers[0].input_shape[1]
+    assert num_inputs == len(inputs['inputs'])
 
     # the preprocessor handles all the nan replacement, scaling,
     # shifts, etc
