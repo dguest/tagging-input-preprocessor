@@ -9,6 +9,9 @@ _help_hdf5_file = "NN weights file from Keras"
 
 # NOTE: the code execution starts in `run()` below, skip down there!
 
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = "%i" % 3
+
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from numpy import linspace
 from numpy.lib.recfunctions import merge_arrays
@@ -81,10 +84,12 @@ class Preprocessor:
 
 def load_keras_model(arch_file, weights_file):
     """ loads and initializes a keras model"""
-    from keras.models import model_from_json
-    with open(arch_file) as arch:
-        model = model_from_json(''.join(arch.readlines()))
-    model.load_weights(weights_file)
+    from keras.models import model_from_json, load_model
+    model = load_model('nn_data/hl_tracks_model.keras_model')
+    #with open(arch_file) as arch:
+    #    model = model_from_json(arch)
+    #    #model = model_from_json(''.join(arch.readlines()))
+    #model.load_weights(weights_file)
     return model
 
 def load_variable_names(variables_file_name):
@@ -105,9 +110,10 @@ def run_julian():
     outputs = model.predict(array)[:,0]  # TODO should it be [:, 1] instead?
     print(outputs)
 
-
+"""
 def run():
-    """main function call for this script"""
+#main function call for this script
+
     # read in the command line options
     args = _get_args()
 
@@ -145,6 +151,7 @@ def run():
             lwtnn = discrim[not_close]
             diff = lwtnn - keras
             for ker, lw, dif in zip(keras, lwtnn, diff):
+                print(f'keras: {ker:.3}')
                 print(f'keras: {ker:.3}, lwtnn: {lw:.3}, diff: {dif:.3}')
             n_diff['diffs'] += diff.size
         n_diff['total'] += pattern.size
@@ -152,6 +159,7 @@ def run():
     # Print summary information
     print('total with difference: {} of {}, ({:.3%})'.format(
         n_diff['diffs'], n_diff['total'], n_diff['diffs']/n_diff['total']))
+"""
 
 def load_julian_processed_hdf5_data(feature, file_name="./input_data/small_test_categorized_data_signal.h5"):
     with h5py.File(file_name, 'r') as hf:
@@ -162,12 +170,12 @@ def load_raw_hdf5_data(feature, file_name="./input_data/small_test_data_signal.h
     with h5py.File(file_name, 'r') as hf:
         data = hf.get(feature)
     return data
-
+"""
 def generate_test_pattern(input_file, input_dict, chunk_size=200):
-    """
-    This spits out structured arrays, it may have to be changed to flatten
-    the 2d arrays of tracks and clusters
-    """
+
+    #This spits out structured arrays, it may have to be changed to flatten
+    #the 2d arrays of tracks and clusters
+
     with File(input_file, 'r') as h5file:
         for start in range(0, h5file['jets'].shape[0], chunk_size):
             sl = slice(start, start + chunk_size)
@@ -192,7 +200,7 @@ def generate_test_pattern(input_file, input_dict, chunk_size=200):
             fatjet.dtype.names = newnames
 
             yield merge_arrays((fatjet,*subjets), flatten=True)
-
+"""
 
 
 if __name__ == '__main__':
