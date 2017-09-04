@@ -65,6 +65,7 @@ class Preprocessor:
         nan_positions = np.isnan(data) | np.isinf(data)
         default_values = np.repeat(self.default[None,...], data.shape[0], axis=0)
         data[nan_positions] = default_values[nan_positions]
+        return data
 
     def scale_and_center(self, data):
         scaled_data = (data + self.offset) * self.scale
@@ -109,8 +110,15 @@ def run_julian():
 
     data = load_julian_processed_hdf5_data(file_name= args.data_file, feature='hl_tracks')
     array = preprocessor.preprocess_data(data)
-    outputs = model.predict(array)[:,0]  # TODO should it be [:, 1] instead?
+    assert array is not None
+    print(array.dtype)
+    print(array.shape)
+    outputs = model.predict(array) 
+    assert outputs is not None
     print(outputs)
+    outputs = outputs[:,0]
+    labels = np.round(outputs)
+    print(labels)
 
 """
 def run():
