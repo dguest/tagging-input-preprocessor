@@ -67,7 +67,8 @@ class Preprocessor:
         data[nan_positions] = default_values[nan_positions]
 
     def scale_and_center(self, data):
-        return (data + self.offset) * self.scale
+        scaled_data = (data + self.offset) * self.scale
+        return scaled_data
 
     def convert_2D_ndarray_to_numpy(self, data):
         """Returns a flat numpy array given a structured array"""
@@ -163,13 +164,15 @@ def run():
 """
 
 def load_julian_processed_hdf5_data(feature, file_name="./input_data/small_test_categorized_data_signal.h5"):
-    with h5py.File(file_name, 'r') as hf:
-        data = hf.get("/%s/%s" % (feature, 'test'))
+    hf = h5py.File(file_name, 'r')
+    data = hf.get("/%s/%s" % (feature, 'test'))
+    assert data is not None, "Found None instead of h5 dataset..."
     return data
 
 def load_raw_hdf5_data(feature, file_name="./input_data/small_test_data_signal.h5", num_samples=None):
-    with h5py.File(file_name, 'r') as hf:
-        data = hf.get(feature)
+    hf = h5py.File(file_name, 'r')
+    data = hf.get(feature)
+    assert data is not None, "Found None instead of h5 dataset..."
     return data
 """
 def generate_test_pattern(input_file, input_dict, chunk_size=200):
