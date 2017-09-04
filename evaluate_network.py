@@ -56,8 +56,8 @@ class Preprocessor:
         flat_data = self.replace_nans(flat_data)
         return flat_data
 
-    def preprocess_data(self, data):
-        flat_data = self.scale_and_center(data)
+    def preprocess_data(self, data, mean_vector=None, std_vector=None):
+        flat_data = self.scale_and_center(data, mean_vector, std_vector)
         flat_data = self.replace_nans(flat_data)
         return flat_data
 
@@ -67,8 +67,12 @@ class Preprocessor:
         data[nan_positions] = default_values[nan_positions]
         return data
 
-    def scale_and_center(self, data):
-        scaled_data = (data + self.offset) * self.scale
+    def scale_and_center(self, data, mean_vector=None, std_vector=None):
+        
+        if mean_vector is None and std_vector is None:
+            scaled_data = (data + self.offset) * self.scale
+        else:
+            scaled_data = (data - mean_vector) / std_vector
         return scaled_data
 
     def convert_2D_ndarray_to_numpy(self, data):
@@ -109,7 +113,11 @@ def run_julian():
     preprocessor = Preprocessor(variable_names['inputs'])
 
     data = load_julian_processed_hdf5_data(file_name= args.data_file, feature='hl_tracks')
-    array = preprocessor.preprocess_data(data)
+    #mean_vector, std_vector = load_mean_and_std_vectors(feature='hl_tracks')
+    #assert mean_vector is not None
+    #assert std_vector is not None
+    mean_vector, std_vector = None, None
+    array = preprocessor.preprocess_data(data, mean_vector, std_vector)
     assert array is not None
     print(array.dtype)
     print(array.shape)
@@ -182,6 +190,12 @@ def load_raw_hdf5_data(feature, file_name="./input_data/small_test_data_signal.h
     data = hf.get(feature)
     assert data is not None, "Found None instead of h5 dataset..."
     return data
+
+def load_mean_and_std_vectors(feature, path="/baldig/physicsprojects/atlas/hbb/raw_data/v_3/"):
+    mean_vector = np.load(path+"%s_mean_vector.npy"%feature)
+    std_vector = np.load(path+"%s_std_vector.npy"%feature)
+    return [mean_vector, std_vector]
+
 """
 def generate_test_pattern(input_file, input_dict, chunk_size=200):
 
