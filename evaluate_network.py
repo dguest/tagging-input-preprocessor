@@ -20,6 +20,7 @@ import json
 from math import isnan
 from h5py import File
 from collections import Counter
+import h5py
 
 def _get_args():
     parser = ArgumentParser(
@@ -50,14 +51,14 @@ class Preprocessor:
 
 
     def get_array(self, data):
-        flat_data = convert_2D_ndarray_to_numpy(data)
-        flat_data = scale_and_center(flat_data)
-        flat_data = replace_nans(flat_data)
+        flat_data = self.convert_2D_ndarray_to_numpy(data)
+        flat_data = self.scale_and_center(flat_data)
+        flat_data = self.replace_nans(flat_data)
         return flat_data
 
     def preprocess_data(self, data):
-        flat_data = scale_and_center(data)
-        flat_data = replace_nans(flat_data)
+        flat_data = self.scale_and_center(data)
+        flat_data = self.replace_nans(flat_data)
         return flat_data
 
     def replace_nans(self, data):
