@@ -78,6 +78,7 @@ class Preprocessor:
     def convert_2D_ndarray_to_numpy(self, data):
         """Returns a flat numpy array given a structured array"""
         # Get the variables we're actually going to use
+        print(self.input_list)
         sub = data[self.input_list]
  
         # we need to convert everything into a float
@@ -99,20 +100,90 @@ def load_keras_model(arch_file, weights_file):
     #model.load_weights(weights_file)
     return model
 
-def load_variable_names(variables_file_name):
+def load_variable_information(variables_file_name):
     with open(variables_file_name) as variables_file:
         inputs = json.loads(''.join(variables_file.readlines()))
     return inputs
 
+def remove_initial_string_from_elements(str_list, initial_string=""):
+    prunned_list = []
+    for name in str_list:
+        initil_str_len = len(initial_string)
+        num_chars = len(name)
+        print(name)
+        name = name[initil_str_len:num_chars]
+        prunned_list.append(name)
+    return prunned_list
+
+def extract_values_as_list(list_of_dicts, key):
+    new_list = []
+    for var_dict in list_of_dicts:
+        new_list.append(var_dict[key])
+    return new_list
+
+def replace_values_in_dicts(list_of_dicts, new_value_list, key):
+    assert len(list_of_dicts) == len(new_value_list)
+    for pos, var_dict in enumerate(list_of_dicts):
+        var_dict[key] = new_value_list[pos]
+    return list_of_dicts
+
 def run_julian():
     args = _get_args()
     model = load_keras_model(args.architecture_file, args.hdf5_file)
-    variable_names = load_variable_names(args.variables_file)
+    variable_information = load_variable_information(args.variables_file)
     num_inputs = model.layers[0].input_shape[1]
-    assert num_inputs == len(variable_names['inputs'])
-    preprocessor = Preprocessor(variable_names['inputs'])
+    assert num_inputs == len(variable_information['inputs'])
 
-    data = load_julian_processed_hdf5_data(file_name= args.data_file, feature='hl_tracks')
+    kinematic_information = variable_information['inputs'][0:2]
+    sub_jet_1_information = variable_information['inputs'][2:39]
+    sub_jet_2_information = variable_information['inputs'][39:76]
+
+    kinematic_names = extract_values_as_list(kinematic_information, 'name')
+    sub_jet_1_names = extract_values_as_list(sub_jet_1_information, 'name')
+    sub_jet_2_names = extract_values_as_list(sub_jet_2_information, 'name')
+
+    kinematic_names = remove_initial_string_from_elements(kinematic_names, initial_string="jet_")
+    sub_jet_1_names = remove_initial_string_from_elements(sub_jet_1_names, initial_string="subjet_1_") 
+    sub_jet_2_names = remove_initial_string_from_elements(sub_jet_2_names, initial_string="subjet_2_")
+
+    kinematic_information = replace_values_in_dicts(kinematic_information, kinematic_names, 'name')
+    sub_jet_1_information = replace_values_in_dicts(sub_jet_1_information, sub_jet_1_names, 'name')
+    sub_jet_1_information = replace_values_in_dicts(sub_jet_2_information, sub_jet_2_names, 'name')
+
+    kin_preprocessor = Preprocessor(kinematic_information)
+    sub_jet_1_preprocessor = Preprocessor(sub_jet_1_information)
+    sub_jet_2_preprocessor = Preprocessor(sub_jet_2_information)
+
+    jet = load_raw_hdf5_data('jets')
+    sub_jet_1 = load_raw_hdf5_data('subjet1')
+    sub_jet_2 = load_raw_hdf5_data('subjet2')
+
+    print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
+
+    # TODO I think preprocessor doesnt work because the list of variable names has to be in order
+    
+    jet = kin_preprocessor.convert_2D_ndarray_to_numpy(jet)
+    sub_jet_1 = sub_jet_1_preprocessor.convert_2D_ndarray_to_numpy(sub_jet_1)
+    sub_jet_2 = sub_jet_2_preprocessor.convert_2D_ndarray_to_numpy(sub_jet_2)
+
+    print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
+
+    sub_selection_0 = range(1,3)
+    sub_selection_1 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
+    sub_selection_2 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
+
+    jet = jet[:, sub_selection_0]
+    sub_jet_1 = sub_jet_1[:, sub_selection_1]
+    sub_jet_2 = sub_jet_2[:, sub_selection_2]
+
+    data = np.hstack((jet, sub_jet_1))
+    data = np.hstack((data, sub_jet_2))
+
+    print(data.shape)
+    data = preprocessor.convert_2D_ndarray_to_numpy(data)
+    print(data.shape)
+
+    #data = load_julian_processed_hdf5_data(file_name= args.data_file, feature='hl_tracks')
     #mean_vector, std_vector = load_mean_and_std_vectors(feature='hl_tracks')
     #assert mean_vector is not None
     #assert std_vector is not None
