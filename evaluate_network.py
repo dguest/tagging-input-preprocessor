@@ -78,9 +78,11 @@ class Preprocessor:
     def convert_2D_ndarray_to_numpy(self, data):
         """Returns a flat numpy array given a structured array"""
         # Get the variables we're actually going to use
-        print(self.input_list)
+        data = data[:]  # this is needed if loading from h5 file
         sub = data[self.input_list]
- 
+        
+        #sub_array_flattened = sub.astype(float).view((float, len(vars_dtype)))
+        #return sub_array_flattened
         # we need to convert everything into a float
         # first create the new datatype
         ftype = [(n, float) for n in self.input_list]
@@ -110,7 +112,7 @@ def remove_initial_string_from_elements(str_list, initial_string=""):
     for name in str_list:
         initil_str_len = len(initial_string)
         num_chars = len(name)
-        print(name)
+        #print(name)
         name = name[initil_str_len:num_chars]
         prunned_list.append(name)
     return prunned_list
@@ -158,29 +160,30 @@ def run_julian():
     sub_jet_1 = load_raw_hdf5_data('subjet1')
     sub_jet_2 = load_raw_hdf5_data('subjet2')
 
-    print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
-
-    # TODO I think preprocessor doesnt work because the list of variable names has to be in order
+    #print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
+    #print(jet.dtype.names)
     
     jet = kin_preprocessor.convert_2D_ndarray_to_numpy(jet)
     sub_jet_1 = sub_jet_1_preprocessor.convert_2D_ndarray_to_numpy(sub_jet_1)
     sub_jet_2 = sub_jet_2_preprocessor.convert_2D_ndarray_to_numpy(sub_jet_2)
 
-    print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
+    #print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
 
-    sub_selection_0 = range(1,3)
-    sub_selection_1 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
-    sub_selection_2 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
+    # this subselection has already happened!
+    #sub_selection_0 = range(1,3)
+    #sub_selection_1 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
+    #sub_selection_2 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
 
-    jet = jet[:, sub_selection_0]
-    sub_jet_1 = sub_jet_1[:, sub_selection_1]
-    sub_jet_2 = sub_jet_2[:, sub_selection_2]
+    #jet = jet[:, sub_selection_0]
+    #sub_jet_1 = sub_jet_1[:, sub_selection_1]
+    #sub_jet_2 = sub_jet_2[:, sub_selection_2]
+    
 
     data = np.hstack((jet, sub_jet_1))
     data = np.hstack((data, sub_jet_2))
-
-    print(data.shape)
-    data = preprocessor.convert_2D_ndarray_to_numpy(data)
+    data = data[0:8, :]
+    print("raw inputs")
+    print(data[0, 0:5])
     print(data.shape)
 
     #data = load_julian_processed_hdf5_data(file_name= args.data_file, feature='hl_tracks')
@@ -188,12 +191,18 @@ def run_julian():
     #assert mean_vector is not None
     #assert std_vector is not None
     mean_vector, std_vector = None, None
+    variables_information = kinematic_information+sub_jet_1_information+sub_jet_2_information
+    assert len(variables_information) == data.shape[1], len(variables_information)
+    preprocessor = Preprocessor(variables_information)
     array = preprocessor.preprocess_data(data, mean_vector, std_vector)
     assert array is not None
-    print(array.dtype)
-    print(array.shape)
+    print("scaled inputs")
+    print(array[0, 0:5])
+    #print(array.dtype)
+    #print(array.shape)
     outputs = model.predict(array) 
     assert outputs is not None
+    print("outputs")
     print(outputs)
     outputs = outputs[:,0]
     labels = np.round(outputs)
@@ -256,7 +265,7 @@ def load_julian_processed_hdf5_data(feature, file_name="./input_data/small_test_
     assert data is not None, "Found None instead of h5 dataset..."
     return data
 
-def load_raw_hdf5_data(feature, file_name="./input_data/small_test_data_signal.h5", num_samples=None):
+def load_raw_hdf5_data(feature, file_name="./input_data/small_test_raw_data_signal.h5", num_samples=None):
     hf = h5py.File(file_name, 'r')
     data = hf.get(feature)
     assert data is not None, "Found None instead of h5 dataset..."
