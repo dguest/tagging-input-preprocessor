@@ -78,7 +78,7 @@ class Preprocessor:
     def convert_2D_ndarray_to_numpy(self, data):
         """Returns a flat numpy array given a structured array"""
         # Get the variables we're actually going to use
-        data = data[:]  # this is needed if loading from h5 file
+        data = data[:]  # this is needed if loading from h5 file, otherwise you get the name ordering error
         sub = data[self.input_list]
         
         #sub_array_flattened = sub.astype(float).view((float, len(vars_dtype)))
