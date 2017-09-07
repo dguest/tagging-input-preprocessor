@@ -136,77 +136,40 @@ def run_julian():
     num_inputs = model.layers[0].input_shape[1]
     assert num_inputs == len(variable_information['inputs'])
 
-    kinematic_information = variable_information['inputs'][0:2]
-    sub_jet_1_information = variable_information['inputs'][2:39]
-    sub_jet_2_information = variable_information['inputs'][39:76]
+    jet = load_raw_hdf5_data('jets', file_name='./input_data/small_test_flattened_data_signal.h5')
+    sub_jet_1 = load_raw_hdf5_data('subjet1', file_name='./input_data/small_test_flattened_data_signal.h5')
+    sub_jet_2 = load_raw_hdf5_data('subjet2', file_name='./input_data/small_test_flattened_data_signal.h5')
 
-    kinematic_names = extract_values_as_list(kinematic_information, 'name')
-    sub_jet_1_names = extract_values_as_list(sub_jet_1_information, 'name')
-    sub_jet_2_names = extract_values_as_list(sub_jet_2_information, 'name')
+    print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
 
-    kinematic_names = remove_initial_string_from_elements(kinematic_names, initial_string="jet_")
-    sub_jet_1_names = remove_initial_string_from_elements(sub_jet_1_names, initial_string="subjet_1_") 
-    sub_jet_2_names = remove_initial_string_from_elements(sub_jet_2_names, initial_string="subjet_2_")
+    sub_selection_0 = range(1,3)
+    sub_selection_1 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
+    sub_selection_2 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
 
-    kinematic_information = replace_values_in_dicts(kinematic_information, kinematic_names, 'name')
-    sub_jet_1_information = replace_values_in_dicts(sub_jet_1_information, sub_jet_1_names, 'name')
-    sub_jet_1_information = replace_values_in_dicts(sub_jet_2_information, sub_jet_2_names, 'name')
+    jet = jet[:, sub_selection_0]
+    sub_jet_1 = sub_jet_1[:, sub_selection_1]
+    sub_jet_2 = sub_jet_2[:, sub_selection_2]
 
-    kin_preprocessor = Preprocessor(kinematic_information)
-    sub_jet_1_preprocessor = Preprocessor(sub_jet_1_information)
-    sub_jet_2_preprocessor = Preprocessor(sub_jet_2_information)
-
-    jet = load_raw_hdf5_data('jets')
-    sub_jet_1 = load_raw_hdf5_data('subjet1')
-    sub_jet_2 = load_raw_hdf5_data('subjet2')
-
-    #print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
-    #print(jet.dtype.names)
-    
-    jet = kin_preprocessor.convert_2D_ndarray_to_numpy(jet)
-    sub_jet_1 = sub_jet_1_preprocessor.convert_2D_ndarray_to_numpy(sub_jet_1)
-    sub_jet_2 = sub_jet_2_preprocessor.convert_2D_ndarray_to_numpy(sub_jet_2)
-
-    #print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
-
-    # this subselection has already happened!
-    #sub_selection_0 = range(1,3)
-    #sub_selection_1 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
-    #sub_selection_2 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
-
-    #jet = jet[:, sub_selection_0]
-    #sub_jet_1 = sub_jet_1[:, sub_selection_1]
-    #sub_jet_2 = sub_jet_2[:, sub_selection_2]
-    
+    print("Shapes after subselection")
+    print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
 
     data = np.hstack((jet, sub_jet_1))
     data = np.hstack((data, sub_jet_2))
-    data = data[0:8, :]
-    print("raw inputs")
-    print(data[0, 0:5])
+
     print(data.shape)
 
-    #data = load_julian_processed_hdf5_data(file_name= args.data_file, feature='hl_tracks')
-    #mean_vector, std_vector = load_mean_and_std_vectors(feature='hl_tracks')
-    #assert mean_vector is not None
-    #assert std_vector is not None
     mean_vector, std_vector = None, None
-    variables_information = kinematic_information+sub_jet_1_information+sub_jet_2_information
-    assert len(variables_information) == data.shape[1], len(variables_information)
-    preprocessor = Preprocessor(variables_information)
+    preprocessor = Preprocessor(variable_information['inputs'])
     array = preprocessor.preprocess_data(data, mean_vector, std_vector)
     assert array is not None
-    print("scaled inputs")
-    print(array[0, 0:5])
-    #print(array.dtype)
-    #print(array.shape)
-    outputs = model.predict(array) 
+    outputs = model.predict(array)
+
     assert outputs is not None
     print("outputs")
-    print(outputs)
+    print(outputs[0:8])
     outputs = outputs[:,0]
     labels = np.round(outputs)
-    print(labels)
+    print(labels[0:8])
 
 """
 def run():
