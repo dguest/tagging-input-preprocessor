@@ -79,6 +79,88 @@ def test_loading_and_applying_scaling_from_Dan_json_vs_Julian_numpy():
     #print(np.isclose(predictions_using_julian_mean_and_std(), predictions_using_dan_offset_and_scale()))
     assert np.all(np.isclose(predictions_using_julian_mean_and_std(), predictions_using_dan_offset_and_scale()))
 
+def test_predictions_from_flattened_julian_h5_vs_preprocesses_julian_h5():
+    def predictions_using_dan_offset_and_scale():
+        args = _get_args()
+        model = load_keras_model(args.architecture_file, args.hdf5_file)
+        variable_information = load_variable_information(args.variables_file)
+        num_inputs = model.layers[0].input_shape[1]
+        assert num_inputs == len(variable_information['inputs'])
+        variable_names = extract_values_as_list(variable_information['inputs'], 'name')
+        preprocessor = Preprocessor(variable_information['inputs'])
+        data = load_julian_processed_hdf5_data(file_name= args.data_file, feature='hl_tracks')
+        mean_vector, std_vector = None, None
+        print('raw data')
+        print(variable_names[0:5])
+        print(data[0, 0:5])
+        array = preprocessor.preprocess_data(data, mean_vector, std_vector)
+        assert array is not None
+        print('preprocessed data')
+        print(array[0, 0:5])
+        outputs = model.predict(array) 
+        assert outputs is not None
+        print(outputs)
+        outputs = outputs[:,0]
+        labels = np.round(outputs)
+        print(labels)
+        return labels   
+    def predictions_from_flattened_julian_h5():
+        args = _get_args()
+        model = load_keras_model(args.architecture_file, args.hdf5_file)
+        variable_information = load_variable_information(args.variables_file)
+        num_inputs = model.layers[0].input_shape[1]
+        assert num_inputs == len(variable_information['inputs'])
+
+        jet = load_raw_hdf5_data('jets', file_name='./input_data/small_test_flattened_data_signal.h5')
+        sub_jet_1 = load_raw_hdf5_data('subjet1', file_name='./input_data/small_test_flattened_data_signal.h5')
+        sub_jet_2 = load_raw_hdf5_data('subjet2', file_name='./input_data/small_test_flattened_data_signal.h5')
+
+        print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
+
+        sub_selection_0 = range(1,3)
+        sub_selection_1 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
+        sub_selection_2 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
+
+        jet = jet[:, sub_selection_0]
+        sub_jet_1 = sub_jet_1[:, sub_selection_1]
+        sub_jet_2 = sub_jet_2[:, sub_selection_2]
+
+        print("after subselection")
+        print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
+
+        print("raw flat jet")
+        print(jet.shape)
+        print(jet[0])
+        #print("this means there is a bug in preprocessor.convert_2D_ndarray_to_numpy")
+
+        data = np.hstack((jet, sub_jet_1))
+        data = np.hstack((data, sub_jet_2))
+        data = data[0:8, :]
+        print("raw flat stacked inputs")
+        print(data[0, 0:5])
+        print(data.shape)
+
+        mean_vector, std_vector = None, None
+        #variable_information = kinematic_information+sub_jet_1_information+sub_jet_2_information
+        #assert len(variable_information) == data.shape[1], len(variable_information)
+        preprocessor = Preprocessor(variable_information['inputs'])
+        array = preprocessor.preprocess_data(data, mean_vector, std_vector)
+        assert array is not None
+        print("scaled inputs")
+        print(array[0, 0:5])
+        outputs = model.predict(array)
+        assert outputs is not None
+        print("outputs")
+        print(outputs)
+        outputs = outputs[:,0]
+        labels = np.round(outputs)
+        print(labels)
+        return labels
+    print("my preprocessing")
+    predictions_using_dan_offset_and_scale()
+    print("Flattened data with Dan's preprocessing")
+    predictions_from_flattened_julian_h5()
+
 def test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5():
     def predictions_using_dan_offset_and_scale():
         args = _get_args()
@@ -96,14 +178,14 @@ def test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5():
         array = preprocessor.preprocess_data(data, mean_vector, std_vector)
         assert array is not None
         print('preprocessed data')
-        print(data[0, 0:5])
+        print(array[0, 0:5])
         outputs = model.predict(array) 
         assert outputs is not None
-        print(outputs)
+        print(outputs)   
         outputs = outputs[:,0]
         labels = np.round(outputs)
         print(labels)
-        return labels   
+        return labels
     def predictions_from_raw_julian_h5():
         args = _get_args()
         model = load_keras_model(args.architecture_file, args.hdf5_file)
@@ -139,7 +221,7 @@ def test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5():
         print('jet.dtype.names but this ordering is wrong if you just call it like that')
         print('jet.dtype.names')
         print(jet[0])
-
+        
         # I think here is the bug
         print("name, jet[0][name], jet[name][0]")
         for name in jet.dtype.names:
@@ -151,6 +233,7 @@ def test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5():
         sub_jet_2 = sub_jet_2_preprocessor.convert_2D_ndarray_to_numpy(sub_jet_2)
 
         print("raw flat jet")
+        print(jet.shape)
         print(jet[0])
         print("this means there is a bug in preprocessor.convert_2D_ndarray_to_numpy")
 
@@ -162,9 +245,9 @@ def test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5():
         print(data.shape)
 
         mean_vector, std_vector = None, None
-        variables_information = kinematic_information+sub_jet_1_information+sub_jet_2_information
-        assert len(variables_information) == data.shape[1], len(variables_information)
-        preprocessor = Preprocessor(variables_information)
+        variable_information = kinematic_information+sub_jet_1_information+sub_jet_2_information
+        assert len(variable_information) == data.shape[1], len(variable_information)
+        preprocessor = Preprocessor(variable_information)
         array = preprocessor.preprocess_data(data, mean_vector, std_vector)
         assert array is not None
         print("scaled inputs")
@@ -181,8 +264,9 @@ def test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5():
     predictions_using_dan_offset_and_scale()
     print("Dan's preprocessing")
     predictions_from_raw_julian_h5()
+
 if __name__ == "__main__":
-    test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5()
+    test_predictions_from_flattened_julian_h5_vs_preprocesses_julian_h5()
 
 
 
