@@ -13,6 +13,15 @@ To run the code
 
 If anything goes wrong contact me!
 
+Preprocessing the data
+-----------------------
+
+ - First run './input_data/flatten_hdf5.py' Make sure you modify the input and output file to the one you want
+ - Second, for using the high level features you just have to run './run.sh'
+ - The main method in 'evaluate_nn.py' already has the code to subselect the correct features, scale and center the data and make the predictions. You can modify it to make sure it returns the desired values (probabilities or labels)
+
+Let me know if anything goes wrong!
+
 What are all these files
 ------------------------
 
