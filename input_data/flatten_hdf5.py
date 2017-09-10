@@ -9,13 +9,10 @@ def create_dataset(open_file, feature_name, shape):
         return open_file.get(feature_name)
 
 # Merges many hdf5 files into one
-data_label = 'signal'
-new_file_dataset_name = "small_test_flattened_data_%s.h5" % data_label
+new_file_dataset_name = "flattened_data.h5"
 path = "./"
+# This list can contain the names of many h5 files and it will merge them into one.
 file_list_s = ['small_test_raw_data_signal.h5',]
-
-if data_label == 'signal':
-    file_list = file_list_s
 
 f_names = []
 for name in file_list:
@@ -28,7 +25,7 @@ for f_name in f_names:
     files.append(h5py.File(f_name, 'r'))
 
 # Calculate total samples
-round_down = 1.0
+round_down = 1.0  # This is in case you want to use only a percentage of the samples in each file, default is to use all (1.0) 
 total_samples = utils.count_num_samples_from_hdf5_file_list(f_names, round_down)
 print("total samples", total_samples)
 
@@ -62,7 +59,6 @@ for feature_name in feature_names:
 
         save_data = new_hdf5.get(feature_name)
         # this could be made smaller to acomodate RAM requirements
-        #data = utils.flatten(data)
         num_samples_this_file = int(np.floor(data.shape[0]/round_down))
         print(start, end, data.shape[0], end-start)
         if old_names is None:
@@ -76,7 +72,6 @@ for feature_name in feature_names:
         elif len(data.shape) == 3:
             data = data[:, :, :]   
 
-        #data = data[list(col_names)]
         assert data is not None
         if len(data.shape) == 1:
             data = utils.flatten(data[0:num_samples_this_file])
