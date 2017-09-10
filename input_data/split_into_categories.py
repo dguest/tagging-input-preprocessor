@@ -1,20 +1,6 @@
 import h5py 
 import numpy as np
 
-"""
-hf = h5py.File(file_path, 'w')
-
-new_sizes = {u'clusters': (N, 5, 60),
-             u'jets': (N, 11),
-             u'subjet1': (N, 40),
-             u'subjet2': (N, 40),
-             u'subjet3': (N, 40),
-             u'tracks': (N, 29, 60),
-             u'hl_clusters': (N, 7),
-             u'weights': (N, 1),
-            } 
-"""
-
 # Sub selection only happens in the second dimension
 def create_dataset(open_file, feature_name, shape):
     try:
@@ -266,8 +252,8 @@ def copy_in_batches(data, save_data, sub_selection):
 
 if __name__ == "__main__":
     file_path = "./"
-    load_name = "small_test_flattened_data_signal.h5"
-    save_name = "delete_me.h5"
+    load_name = "flattened_data.h5"
+    save_name = "test_data.h5"
     hf = h5py.File(file_path + load_name, 'r')
     save_file = h5py.File(file_path + save_name, 'a')
     print(hf.keys())
