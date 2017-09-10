@@ -130,33 +130,16 @@ def replace_values_in_dicts(list_of_dicts, new_value_list, key):
     return list_of_dicts
 
 def run_julian():
+    feature = 'hl_tracks'
     args = _get_args()
     model = load_keras_model(args.architecture_file, args.hdf5_file)
     variable_information = load_variable_information(args.variables_file)
     num_inputs = model.layers[0].input_shape[1]
     assert num_inputs == len(variable_information['inputs'])
 
-    jet = load_raw_hdf5_data('jets', file_name='./input_data/small_test_flattened_data_signal.h5')
-    sub_jet_1 = load_raw_hdf5_data('subjet1', file_name='./input_data/small_test_flattened_data_signal.h5')
-    sub_jet_2 = load_raw_hdf5_data('subjet2', file_name='./input_data/small_test_flattened_data_signal.h5')
-
-    print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
-
-    sub_selection_0 = range(1,3)
-    sub_selection_1 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
-    sub_selection_2 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) 
-
-    jet = jet[:, sub_selection_0]
-    sub_jet_1 = sub_jet_1[:, sub_selection_1]
-    sub_jet_2 = sub_jet_2[:, sub_selection_2]
-
-    print("Shapes after subselection")
-    print(jet.shape, sub_jet_1.shape, sub_jet_1.shape)
-
-    data = np.hstack((jet, sub_jet_1))
-    data = np.hstack((data, sub_jet_2))
-
-    print(data.shape)
+    data = load_categorized_hdf5_data(feature)
+    print("Using feature: ", feature)
+    print("data shape: ", data.shape)
 
     mean_vector, std_vector = None, None
     preprocessor = Preprocessor(variable_information['inputs'])
@@ -226,6 +209,12 @@ def load_julian_processed_hdf5_data(feature, file_name="./input_data/small_test_
     hf = h5py.File(file_name, 'r')
     data = hf.get("/%s/%s" % (feature, 'test'))
     assert data is not None, "Found None instead of h5 dataset..."
+    return data
+
+def load_categorized_hdf5_data(feature, file_name='./input_data/test_data.h5'):
+    hf = h5py.File(file_name, 'r')
+    data = hf.get("/%s" %feature)
+    assert data is not None, "Found None instead of h5 dataset... maybe the feature name is wrong"
     return data
 
 def load_raw_hdf5_data(feature, file_name="./input_data/small_test_raw_data_signal.h5", num_samples=None):
