@@ -15,7 +15,7 @@ path = "./"
 file_list_s = ['small_test_raw_data_signal.h5',]
 
 f_names = []
-for name in file_list:
+for name in file_list_s:
     f_names.append(path + name)
 
 feature_names = [u'clusters', u'jets', u'subjet1', u'subjet2', u'tracks']

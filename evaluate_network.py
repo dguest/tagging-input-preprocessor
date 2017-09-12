@@ -143,8 +143,11 @@ def run_julian():
 
     mean_vector, std_vector = None, None
     preprocessor = Preprocessor(variable_information['inputs'])
+    for variable in variable_information['inputs']:
+        print(variable)
     array = preprocessor.preprocess_data(data, mean_vector, std_vector)
     assert array is not None
+    print(array[0])
     outputs = model.predict(array)
 
     assert outputs is not None
