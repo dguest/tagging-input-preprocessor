@@ -217,6 +217,7 @@ def test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5():
         sub_jet_1 = load_raw_hdf5_data('subjet1')
         sub_jet_2 = load_raw_hdf5_data('subjet2')
 
+        print("###################### here you can see you the behaviour is different #########################")
         print("raw jet and names")
         print('jet.dtype.names but this ordering is wrong if you just call it like that')
         print('jet.dtype.names')
@@ -227,6 +228,7 @@ def test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5():
         for name in jet.dtype.names:
             print(name, jet[0][name], jet[name][0])
         print("the correct way is jet[name][0] since otherwise the weight would be negative")
+        print("################################################################################################")
 
         jet = kin_preprocessor.convert_2D_ndarray_to_numpy(jet)
         sub_jet_1 = sub_jet_1_preprocessor.convert_2D_ndarray_to_numpy(sub_jet_1)
@@ -266,7 +268,7 @@ def test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5():
     predictions_from_raw_julian_h5()
 
 if __name__ == "__main__":
-    test_predictions_from_flattened_julian_h5_vs_preprocesses_julian_h5()
-
+    #test_predictions_from_flattened_julian_h5_vs_preprocesses_julian_h5()
+    test_predictions_from_raw_julian_h5_vs_preprocesses_julian_h5()
 
 
