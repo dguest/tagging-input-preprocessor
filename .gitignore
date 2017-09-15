@@ -13,4 +13,5 @@
 # except for the data
 !*-data/*
 
+*__pycache__/
 
