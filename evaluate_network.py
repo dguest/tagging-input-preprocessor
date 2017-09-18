@@ -155,6 +155,21 @@ def run_julian():
     labels = np.round(outputs)
     print(labels[0:8])
 
+    print("######## you should get the following #######")
+    print(" \n \
+    outputs \n \
+    [[  3.47837725e-13] \n \
+    [  2.06691980e-14] \n \
+    [  9.94645596e-01] \n \
+    [  1.31387067e-12] \n \
+    [  9.99999762e-01] \n \
+    [  2.97320057e-02] \n \
+    [  1.53339563e-11] \n \
+    [  9.99999166e-01]] \n \
+    [ 0.  0.  1.  0.  1.  0.  0.  1.] \n \
+    "
+    )
+
 """
 def run():
 #main function call for this script
