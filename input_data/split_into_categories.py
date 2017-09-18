@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import h5py 
 import numpy as np
 
@@ -282,6 +284,6 @@ if __name__ == "__main__":
         create_tracks_and_hl_tracks(save_file, save_file, set_type)
         print("splitting all")
         create_all(save_file, save_file, set_type)
-        print("creating jets")
+        print("splitting jets")
         create_jets(hf, save_file, set_type)
 
