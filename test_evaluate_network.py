@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+from __future__ import print_function
 
 import numpy as np
 from evaluate_network import _get_args, load_keras_model, load_variable_information, Preprocessor, load_julian_processed_hdf5_data
