@@ -23,6 +23,12 @@ Preprocessing the data
 
 Let me know if anything goes wrong!
 
+Requirements
+-----------------------
+The code runs on python 2.7.13 and 3.6
+The package versions for python 2 and python 3 are available in py2_7_freeze.txt and py3_6_freeze.txt respectively
+
+
 What are all these files
 ------------------------
 
