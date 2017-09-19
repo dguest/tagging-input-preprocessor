@@ -39,7 +39,7 @@ Flask==0.12
 Flask-Cors==3.0.2
 gevent==1.2.1
 greenlet==0.4.11
-h5py==2.6.0
+h5py==2.7.1
 HeapDict==1.0.0
 html5lib==0.9999999
 idna==2.2
@@ -125,7 +125,7 @@ scipy==0.18.1
 seaborn==0.7.1
 simplegeneric==0.8.1
 singledispatch==3.4.0.3
-six==1.10.0
+six==1.11.0
 snowballstemmer==1.2.1
 sockjs-tornado==1.0.3
 Sphinx==1.5.1
