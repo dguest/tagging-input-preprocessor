@@ -254,7 +254,7 @@ def copy_in_batches(data, save_data, sub_selection):
 
 if __name__ == "__main__":
     file_path = "./"
-    load_name = "flattened_data.h5"
+    load_name = "temporary_flattened_data.h5"
     save_name = "test_data.h5"
     hf = h5py.File(file_path + load_name, 'r')
     save_file = h5py.File(file_path + save_name, 'a')
