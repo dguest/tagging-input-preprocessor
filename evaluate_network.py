@@ -132,6 +132,7 @@ def replace_values_in_dicts(list_of_dicts, new_value_list, key):
 
 def run_julian():
     feature = 'hl_tracks'
+    save_path = "./"
     args = _get_args()
     model = load_keras_model(args.architecture_file, args.hdf5_file)
     variable_information = load_variable_information(args.variables_file)
@@ -149,12 +150,15 @@ def run_julian():
     outputs = model.predict(array)
 
     assert outputs is not None
-    print("outputs")
-    print(outputs[0:8])
+    #print("outputs")
+    #print(outputs[0:8])
     outputs = outputs[:,0]
     labels = np.round(outputs)
-    print(labels[0:8])
+    np.save(save_path+"predicted_probabilities.npy", outputs)
+    np.save(save_path+"predicted_labels.npy", labels)
 
+    #print(labels[0:8])
+    """
     print("######## you should get the following #######")
     print(" \n \
     outputs \n \
@@ -169,6 +173,7 @@ def run_julian():
     [ 0.  0.  1.  0.  1.  0.  0.  1.] \n \
     "
     )
+    """
 
 """
 def run():
