@@ -12,7 +12,6 @@ def create_dataset(open_file, feature_name, shape):
         return open_file.get(feature_name)
 
 # Merges many hdf5 files into one
-new_file_dataset_name = "flattened_data.h5"
 path = "./"
 # This list can contain the names of many h5 files and it will merge them into one.
 
@@ -20,6 +19,8 @@ if sys.argv[1] is None:
     file_list = ['small_test_raw_data_signal.h5',]
 else:
     file_list = [str(sys.argv[1])]
+
+new_file_dataset_name = "temporary_flattened_data.h5"
 
 f_names = []
 for name in file_list:
