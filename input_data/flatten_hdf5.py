@@ -3,6 +3,7 @@ from __future__ import print_function
 import numpy as np
 import h5py
 import utils
+import sys
 
 def create_dataset(open_file, feature_name, shape):
     try:
@@ -14,7 +15,11 @@ def create_dataset(open_file, feature_name, shape):
 new_file_dataset_name = "flattened_data.h5"
 path = "./"
 # This list can contain the names of many h5 files and it will merge them into one.
-file_list = ['small_test_raw_data_signal.h5',]
+
+if sys.argv[1] is None:
+    file_list = ['small_test_raw_data_signal.h5',]
+else:
+    file_list = [str(sys.argv[1])]
 
 f_names = []
 for name in file_list:
