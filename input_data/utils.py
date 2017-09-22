@@ -14,7 +14,8 @@ def flatten(ds):
     """
     ftype = [(n, float) for n in ds.dtype.names]
     flat = ds.astype(ftype).view(float).reshape(ds.shape + (-1,))
-    return flat.swapaxes(1, len(ds.shape))
+    swapped = flat.swapaxes(1, len(ds.shape)) # swapping is done to arrange array due to new dimension
+    return swapped
 
 def shuffle_samples(data, axis=0):
     """ 
