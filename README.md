@@ -21,6 +21,8 @@ Preprocessing the data
  - Third, for using the high level features you just have to run './run.sh'. You can change the feature variable to use the group of variables you want
  - The main method in 'evaluate_nn.py' already has the code to subselect the correct features, scale and center the data and make the predictions. You can modify it to make sure it returns the desired values (probabilities or labels)
 
+You can also do all of this at once if you run get_predictions.sh This will save the predicted probabilities and labels into numpy files you can later use to calculate the ROC AUC. Just make sure to pass the correct input file in get_predictions.sh.
+
 Let me know if anything goes wrong!
 
 Requirements
