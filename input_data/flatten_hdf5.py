@@ -15,7 +15,7 @@ def create_dataset(open_file, feature_name, shape):
 path = "./"
 # This list can contain the names of many h5 files and it will merge them into one.
 
-if sys.argv[1] is None:
+if len(sys.argv) < 2:
     file_list = ['small_test_raw_data_signal.h5',]
 else:
     file_list = [str(sys.argv[1])]
@@ -72,7 +72,7 @@ for feature_name in feature_names:
         if old_names is None:
             old_names = col_names
         assert old_names == col_names, old_names + col_names
-        data = data[col_names] 
+        data = data[col_names][:] 
         if len(data.shape) == 1:
             data = data[:]
         elif len(data.shape) == 2:
