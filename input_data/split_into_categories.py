@@ -18,7 +18,7 @@ def create_weights(open_file, save_file, set_type):
     N = data.shape[0]
     #save_data = open_file.create_dataset(feature_name, (N, 1), dtype=np.float32)
     save_data = create_dataset(save_file, feature_name, (N, 1))
-    sub_selection = [0]
+    sub_selection = [2]
     assert len(sub_selection) == save_data.shape[1]
     copy_in_batches(data, save_data, sub_selection)
 
@@ -30,7 +30,7 @@ def create_high_level_clusters(open_file, save_file, set_type):
     N = data.shape[0]
     #save_data = open_file.create_dataset(feature_name, (N, 7), dtype=np.float32)
     save_data = create_dataset(save_file, feature_name, (N, 2+7))
-    sub_selection = list(range(1,3)) + list(range(4,11))
+    sub_selection = list(range(0,2)) + list(range(4,11))
     assert len(sub_selection) == save_data.shape[1]
     copy_in_batches(data, save_data, sub_selection)
 
@@ -57,7 +57,7 @@ def create_high_level_tracks(open_file, save_file, set_type):
     N = data_1.shape[0]
     #save_data = open_file.create_dataset(feature_name, (N, 37*2), dtype=np.float32)
     save_data = create_dataset(save_file, feature_name, (N, 2+37*2))
-    sub_selection_0 = range(1,3)
+    sub_selection_0 = range(0, 2)
     sub_selection_1 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40))
     sub_selection_2 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40))
     assert len(sub_selection_0) + len(sub_selection_1) + len(sub_selection_2) == save_data.shape[1]
@@ -119,7 +119,7 @@ def create_tracks(open_file, save_file, set_type):
     N = data_1.shape[0]
     #save_data = open_file.create_dataset(feature_name, (N, 5+29), dtype=np.float32)
     save_data = create_dataset(save_file, feature_name, (N, 2+25*60))
-    sub_selection_1 = range(1,3)
+    sub_selection_1 = range(0,2)
     sub_selection_2 = list(range(0, 9)) + list(range(13, 29))
     assert len(sub_selection_1) + len(sub_selection_2) == 2+25
     copy_in_batches([data_1, data_2], save_data, [sub_selection_1, sub_selection_2])
@@ -133,7 +133,7 @@ def create_clusters(open_file, save_file, set_type):
     N = data_1.shape[0]
     #save_data = open_file.create_dataset(feature_name, (N, 5+29), dtype=np.float32)
     save_data = create_dataset(save_file, feature_name, (N, 2+5*60))
-    sub_selection_1 = range(1,3)
+    sub_selection_1 = range(0,2)
     sub_selection_2 = range(0,5)
     assert len(sub_selection_1) + len(sub_selection_2) == 2+5
     copy_in_batches([data_1, data_2], save_data, [sub_selection_1, sub_selection_2])
