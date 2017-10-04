@@ -7,8 +7,8 @@ import numpy as np
 # _______________________________________________________________________
 # part 1
 
-# feature_names = [u'clusters', u'jets', u'subjet1', u'subjet2', u'tracks']
-feature_names = [u'jets']
+feature_names = [u'clusters', u'jets', u'subjet1', u'subjet2', u'tracks']
+# feature_names = [u'jets']
 
 def get_flat_array(input_file, output_file_name):
     with File(input_file) as test_h5:
@@ -16,12 +16,7 @@ def get_flat_array(input_file, output_file_name):
             for feature_name in feature_names:
                 print(feature_name)
                 data = test_h5[feature_name]
-                fields = data.dtype.names + (Ellipsis,)
-                print(data[fields][0])
-                print(data[data.dtype.names][0])
-                print(data[:][0])
-                print(np.asarray(data)[0])
-                flat_ds = utils.flatten(np.asarray(data[data.dtype.names]))
+                flat_ds = utils.flatten(np.asarray(data))
                 out_file.create_dataset(
                     feature_name,
                     flat_ds.shape,
