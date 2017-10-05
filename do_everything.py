@@ -103,10 +103,12 @@ def get_high_level_tracks(input_file, output_file):
     sub_selection_0 = range(0, 2)
     sub_selection_1 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40))
     sub_selection_2 = list(range(0,15)) + list(range(16, 34)) + list(range(36, 40))
+    feature_name = 'hl_tracks'
     with File(input_file) as open_file:
         data_0 = open_file['jets/']
         data_1 = open_file['subjet1/']
         data_2 = open_file['subjet2/']
+        N = data_1.shape[0]
 
         with File(output_file, 'w') as save_file:
             save_data = save_file.create_dataset(feature_name, (N, 2+37*2),
