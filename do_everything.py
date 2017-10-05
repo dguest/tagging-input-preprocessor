@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from h5py import File
 import numpy as np
@@ -30,20 +30,6 @@ def flatten(ds):
      # so we roll to put the 'feature number' on axis 1
     return np.rollaxis(flat, -1, 1)
 
-
-def get_flat_array(input_file, output_file_name):
-    with File(input_file) as test_h5:
-        with File(output_file_name, 'w') as out_file:
-            for feature_name in feature_names:
-                print(feature_name)
-                data = test_h5[feature_name]
-                flat_ds = flatten(data)
-                out_file.create_dataset(
-                    feature_name,
-                    flat_ds.shape,
-                    data=flat_ds,
-                    dtype=np.float32)
-
 # ________________________________________________________________________
 # Part 2
 
@@ -62,30 +48,48 @@ sub_selections = {
         ('jets', range(0, 2)),
         ('subjet1', list(range(0,15)) + list(range(16, 34)) + list(range(36, 40)) ),
         ('subjet2', list(range(0,15)) + list(range(16, 34)) + list(range(36, 40))),
+    ],
+    'mv2c10': [
+        ('subjet1', [15]),
+        ('subjet2', [15])
+    ],
+    'tracks': [
+        ('jets', range(0,2)),
+        ('tracks', list(range(0, 9)) + list(range(13, 29)))
     ]
 }
 
 
-def get_features(input_file, output_file, feature_name):
+def get_features(input_file, feature_name):
     ds_names, selection_lists = zip(*sub_selections[feature_name])
     data_list = [input_file[nm] for nm in ds_names]
-    N = data_list[0].shape[0]
+    batch_size = data_list[0].shape[0]
+    slices = []
+    for dat, subsel in zip(data_list, selection_lists):
+        # take a slice of the data, and then reshape it to flatten
+        # everything past the first dimenstion
+        subsel_dat = dat[:,subsel].reshape(dat.shape[0], -1)
+        slices.append(subsel_dat)
+    return np.hstack(slices)
 
-    with File(output_file, 'w') as save_file:
-        n_features = sum([len(l) for l in selection_lists])
-        save_data = get_subselection(data_list, selection_lists)
-        save_file.create_dataset(feature_name, (N, n_features),
-                                 data=save_data, dtype=float)
-
+def save_features(input_file, save_file, feature_name):
+    data = get_features(input_file, feature_name)
+    save_file.create_dataset(feature_name, data=data, dtype=np.float32)
 
 
 def run():
-    input_file = "small_test_raw_data_signal.h5"
+    input_file_name = "small_test_raw_data_signal.h5"
     flat_file_name = "temporary_flattened_data_dan.h5"
     test_file = "test_data_dan.h5"
-    get_flat_array(input_file, flat_file_name)
-    with File(flat_file_name) as flat_file:
-        get_features(flat_file, test_file, feature_name='hl_tracks')
+    with File(input_file_name) as input_file:
+        feature_arrays = {}
+        for feature in feature_names:
+            feature_arrays[feature] = flatten(input_file[feature])
+
+    with File(test_file, 'w') as save_file:
+        save_features(feature_arrays, save_file, feature_name='hl_tracks')
+        save_features(feature_arrays, save_file, feature_name='mv2c10')
+        save_features(feature_arrays, save_file, feature_name='tracks')
 
 if __name__ == '__main__':
     run()
