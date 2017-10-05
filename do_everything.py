@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from h5py import File
-from input_data import utils
 import numpy as np
 
 # _______________________________________________________________________
@@ -10,13 +9,35 @@ import numpy as np
 feature_names = [u'clusters', u'jets', u'subjet1', u'subjet2', u'tracks']
 # feature_names = [u'jets']
 
+def flatten(ds):
+    """
+    Flattens a named numpy array so it can be used with pure numpy.
+    Input: named array
+    Output: numpy array
+
+    Example;
+    print(flatten(sample_jets[['pt', 'eta']]))
+    """
+
+    # we want to cast to a new type, all floats
+    ar = np.asarray(ds)
+    nms = ar.dtype.names
+    ftype = [(n, float) for n in nms]
+
+    # The flattening will put the new 'feature' dimension last
+    flat = ar.astype(ftype, casting='safe').view((float, len(nms)))
+
+     # so we roll to put the 'feature number' on axis 1
+    return np.rollaxis(flat, -1, 1)
+
+
 def get_flat_array(input_file, output_file_name):
     with File(input_file) as test_h5:
         with File(output_file_name, 'w') as out_file:
             for feature_name in feature_names:
                 print(feature_name)
                 data = test_h5[feature_name]
-                flat_ds = utils.flatten(np.asarray(data))
+                flat_ds = flatten(data)
                 out_file.create_dataset(
                     feature_name,
                     flat_ds.shape,
