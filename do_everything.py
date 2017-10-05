@@ -4,7 +4,7 @@ from h5py import File
 import numpy as np
 
 # _______________________________________________________________________
-# part 1
+# part 1: flatten function
 
 feature_names = [u'clusters', u'jets', u'subjet1', u'subjet2', u'tracks']
 # feature_names = [u'jets']
@@ -31,7 +31,7 @@ def flatten(ds):
     return np.rollaxis(flat, -1, 1)
 
 # ________________________________________________________________________
-# Part 2
+# Part 2: sub selections
 
 def get_subselection(data, sub_selection):
     batch_size = data[0].shape[0]
@@ -72,24 +72,36 @@ def get_features(input_file, feature_name):
         slices.append(subsel_dat)
     return np.hstack(slices)
 
-def save_features(input_file, save_file, feature_name):
-    data = get_features(input_file, feature_name)
-    save_file.create_dataset(feature_name, data=data, dtype=np.float32)
-
-
-def run():
-    input_file_name = "small_test_raw_data_signal.h5"
-    flat_file_name = "temporary_flattened_data_dan.h5"
-    test_file = "test_data_dan.h5"
-    with File(input_file_name) as input_file:
+def batch_generator(input_file, feature_group, batch_size=1000):
+    total_size = input_file[feature_names[0]].shape[0]
+    for start in range(0, total_size, batch_size):
+        end = start + batch_size
         feature_arrays = {}
         for feature in feature_names:
             feature_arrays[feature] = flatten(input_file[feature])
+        yield get_features(feature_arrays, feature_group)
 
-    with File(test_file, 'w') as save_file:
-        save_features(feature_arrays, save_file, feature_name='hl_tracks')
-        save_features(feature_arrays, save_file, feature_name='mv2c10')
-        save_features(feature_arrays, save_file, feature_name='tracks')
+def run():
+    input_file_name = "small_test_raw_data_signal.h5"
+    test_file = "test_data_dan.h5"
+
+    save_file = File(test_file, 'w')
+
+    with File(input_file_name) as input_file:
+        for feature_group in sub_selections:
+            for batch in batch_generator(input_file, feature_group, 10000):
+                if feature_group not in save_file:
+                    ds = save_file.create_dataset(
+                        feature_group, batch.shape,
+                        maxshape=(None,) + batch.shape[1:],
+                        chunks=batch.shape,
+                        dtype=np.float32)
+                else:
+                    ds = save_file[feature_group]
+                old_size = ds.shape[0]
+                new_size = old_size + batch.shape[0]
+                ds.resize((new_size,) + ds.shape[1:])
+                ds[old_size:new_size,...] = batch
 
 if __name__ == '__main__':
     run()
